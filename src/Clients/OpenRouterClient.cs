@@ -19,13 +19,13 @@ namespace OpenRouterClient
             _apiKey = apiKey;
             _apiUrl = apiUrl;
             _model = model;
-            _httpClient = new HttpClient() { BaseAddress = new Uri($"{_apiUrl}") };
+            _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
         }
 
         public async Task<string> PromptModelAsync(string prompt)
         {
-            OpenRouterMessageObject openRouterMessageBody = new OpenRouterMessageObject(_role, prompt);
+            OpenRouterMessageObject openRouterMessageBody = new OpenRouterMessageObject { Role = _role, Content = prompt};
             using StringContent jsonContent = new(
                 JsonSerializer.Serialize(new
                 {
@@ -36,21 +36,34 @@ namespace OpenRouterClient
                 "application/json"
             );
 
-            using HttpResponseMessage response = await _httpClient.PostAsync("/chat/completions",jsonContent);
-            response.EnsureSuccessStatusCode();
-
+            using HttpResponseMessage response = await _httpClient.PostAsync($"{_apiUrl}" + "/chat/completions", jsonContent);
             string jsonResponse = await response.Content.ReadAsStringAsync();
 
             return jsonResponse;
         }
     }
 
-    public class OpenRouterMessageObject(string role, string content)
+    class OpenRouterMessageObject
     {
         [JsonPropertyName("role")]
-        public string _role = role;
+        public required string Role { get; set; }
 
         [JsonPropertyName("content")]
-        public string _content = content;
+        public required string Content { get; set; }
+    }
+
+    class OpenRouterResponseObject
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; set; }
+        
+        [JsonPropertyName("choices")]
+        public required string Choices { get; set; }
+
+        [JsonPropertyName("message")]
+        public required string Message { get; set; }
+
+        [JsonPropertyName("usage")]
+        public required string Usage { get; set; }
     }
 }

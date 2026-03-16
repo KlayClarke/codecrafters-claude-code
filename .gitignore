@@ -406,3 +406,7 @@ ASALocalRun/
 
 # Env 
 .env
+
+# Build / Debug Helpers
+.vscode/
+Properties/
